@@ -1,3 +1,11 @@
+import csv
+from datetime import date
+from pathlib import Path
+def format_time(minutes):
+    hour = minutes//60
+    minute = minutes % 60
+    time_message = f'{hour:02d}:{minute:02d}'
+    return time_message
 def input_time():
     global time_flag
     is_valid = True
@@ -40,15 +48,27 @@ total_working_minutes = 0
 total_over_minutes = 0
 is_inputting_time = True
 is_inputting_day = True
-
 while is_inputting_day:
+    is_checking_day = True
+    while is_checking_day:
+        try:
+            year = int(input('年を入力してください：'))
+            month = int(input('月を入力してください：'))
+            day = int(input('日を入力してください：'))
+            work_date = date(year, month, day)
+            print(work_date)
+            is_checking_day = False
+        except ValueError:
+            print('入力された日付が正しくありません')
     over_minutes = 0
     is_checking_continue = True
     while is_inputting_time:
         start_minutes = input_time() * 60
         start_minutes += input_time()
+        start_time_text = format_time(start_minutes)
         end_minutes = input_time() * 60
         end_minutes += input_time()
+        end_time_text = format_time(end_minutes)
         if start_minutes  < end_minutes:
             is_inputting_time = False
             is_valid = True
@@ -57,6 +77,7 @@ while is_inputting_day:
                     break_minutes = int(input('休憩時間(分)を入力してください：'))
                     elapsed_minutes = end_minutes - start_minutes #休憩時間を引いてない稼働時間:elapsed_minutes
                     working_minutes = elapsed_minutes - break_minutes #休憩時間を引いた時間:working_minutes
+                    working_time_text = format_time(working_minutes)
                     if break_minutes <= elapsed_minutes and break_minutes >= 0 and break_minutes <=60:
                         is_valid = False
                     else:
@@ -81,6 +102,15 @@ while is_inputting_day:
             print('今までの残業時間の合計は'+str(total_over_minutes//60)+'時間'+str(total_over_minutes%60)+'分')
         else:
             print('出勤時間と退勤時間に誤りがあります')
+            time_flag = 0
+    over_time_text = format_time(over_minutes)
+    csv_file = Path('attendance.csv')
+    is_new_file =not csv_file.exists()
+    with open(csv_file, 'a', newline='', encoding='utf-8-sig') as file:
+        writer = csv.writer(file)
+        if is_new_file:
+            writer.writerow(['日付', '出勤', '退勤', '休憩時間', '実働時間', '残業時間','実働(分)', '残業(分)'])
+        writer.writerow([work_date,start_time_text,end_time_text,break_minutes,working_time_text,over_time_text,working_minutes,over_minutes])
     while is_checking_continue:
         try:
             next_day_continue = int(input('続けて入力しますか？1:続行 2:中断'))
