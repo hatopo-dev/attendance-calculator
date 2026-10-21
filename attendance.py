@@ -35,14 +35,15 @@ def input_check(time,max_time):     #入力した数値が範囲内かのチェ�
             return True
 time_flag = 0        
 standard_work_minutes = 480
-is_valid2 = True
-while is_valid2:
+fixed_over_minutes = 2700
+is_inputting_time = True
+while is_inputting_time:
     start_minutes = input_time() * 60
     start_minutes += input_time()
     end_minutes = input_time() * 60
     end_minutes += input_time()
     if start_minutes  < end_minutes:
-        is_valid2 = False
+        is_inputting_time = False
         is_valid = True
         while is_valid:
             try:
@@ -56,10 +57,16 @@ while is_valid2:
             except ValueError:
                 print('数字で入力してください')
         print('実働時間：'+str(working_minutes//60)+'時間'+str(working_minutes%60)+'分')
-        if working_minutes > standard_work_minutes:
-            over_minutes = working_minutes - standard_work_minutes
+        if working_minutes > standard_work_minutes: #残業時間が発生しているかの確認
+            over_minutes = working_minutes - standard_work_minutes #残業時間:over_minutes
             print('残業時間：'+str(over_minutes//60)+'時間'+str(over_minutes%60)+'分')
+            fixed_over_minutes = fixed_over_minutes - over_minutes #残りの固定残業時間
         else:
             print('残業時間はありません')
+        if fixed_over_minutes >= 0:
+            print('固定残業時間の残りは'+str(fixed_over_minutes//60)+'時間'+str(fixed_over_minutes%60)+'分')
+        else:
+            p_fixed_over_minutes = fixed_over_minutes * -1
+            print('固定残業時間を'+str(p_fixed_over_minutes//60)+'時間'+str(p_fixed_over_minutes%60)+'分超過しています')
     else:
         print('出勤時間と退勤時間に誤りがあります')
