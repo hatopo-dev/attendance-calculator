@@ -41,6 +41,8 @@ def input_check(time,max_time):     #入力した数値が範囲内かのチェ�
         else:
             print('0~'+str(max_time)+'の数字を入力してください')
             return True
+csv_file = Path('attendance.csv')
+is_new_file =not csv_file.exists()
 time_flag = 0        
 standard_work_minutes = 480
 fixed_over_minutes = 2700
@@ -48,6 +50,14 @@ total_working_minutes = 0
 total_over_minutes = 0
 is_inputting_time = True
 is_inputting_day = True
+if not is_new_file:
+    with open(csv_file, 'r', encoding='utf-8-sig') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            total_working_minutes += int(row[6])
+            total_over_minutes += int(row[7])
+        fixed_over_minutes = fixed_over_minutes - total_over_minutes
 while is_inputting_day:
     is_checking_day = True
     while is_checking_day:
@@ -78,7 +88,7 @@ while is_inputting_day:
                     elapsed_minutes = end_minutes - start_minutes #休憩時間を引いてない稼働時間:elapsed_minutes
                     working_minutes = elapsed_minutes - break_minutes #休憩時間を引いた時間:working_minutes
                     working_time_text = format_time(working_minutes)
-                    if break_minutes <= elapsed_minutes and break_minutes >= 0 and break_minutes <=60:
+                    if break_minutes <= elapsed_minutes and break_minutes >= 0:
                         is_valid = False
                     else:
                         print('正しい数字を入力してください')
@@ -104,12 +114,11 @@ while is_inputting_day:
             print('出勤時間と退勤時間に誤りがあります')
             time_flag = 0
     over_time_text = format_time(over_minutes)
-    csv_file = Path('attendance.csv')
-    is_new_file =not csv_file.exists()
     with open(csv_file, 'a', newline='', encoding='utf-8-sig') as file:
         writer = csv.writer(file)
         if is_new_file:
             writer.writerow(['日付', '出勤', '退勤', '休憩時間', '実働時間', '残業時間','実働(分)', '残業(分)'])
+            is_new_file = False
         writer.writerow([work_date,start_time_text,end_time_text,break_minutes,working_time_text,over_time_text,working_minutes,over_minutes])
     while is_checking_continue:
         try:
@@ -123,6 +132,5 @@ while is_inputting_day:
                 is_checking_continue = False
             else:
                 print('「1」か「2」で入力して下さい')
-
         except ValueError:
             print('「1」か「2」で入力して下さい')
