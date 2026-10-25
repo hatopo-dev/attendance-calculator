@@ -50,11 +50,16 @@ total_working_minutes = 0
 total_over_minutes = 0
 is_inputting_time = True
 is_inputting_day = True
+day_working = {}
 if not is_new_file:
     with open(csv_file, 'r', encoding='utf-8-sig') as file:
         reader = csv.reader(file)
         next(reader)
         for row in reader:
+            if row[0] in day_working:
+                day_working[row[0]] += int(row[6])
+            else:
+                day_working[row[0]] = int(row[6])
             total_working_minutes += int(row[6])
             total_over_minutes += int(row[7])
         fixed_over_minutes = fixed_over_minutes - total_over_minutes
@@ -120,6 +125,10 @@ while is_inputting_day:
             writer.writerow(['日付', '出勤', '退勤', '休憩時間', '実働時間', '残業時間','実働(分)', '残業(分)'])
             is_new_file = False
         writer.writerow([work_date,start_time_text,end_time_text,break_minutes,working_time_text,over_time_text,working_minutes,over_minutes])
+        if str(work_date) in day_working:
+            day_working[str(work_date)] += working_minutes
+        else:
+            day_working[str(work_date)] = working_minutes
     while is_checking_continue:
         try:
             next_day_continue = int(input('続けて入力しますか？1:続行 2:中断'))
@@ -130,6 +139,9 @@ while is_inputting_day:
             elif next_day_continue == 2:
                 is_inputting_day = False
                 is_checking_continue = False
+                print('-----日別集計-----')
+                for day,minutes in day_working.items():
+                    print(day+':'+str(minutes//60)+'時間'+str(minutes%60)+'分')
             else:
                 print('「1」か「2」で入力して下さい')
         except ValueError:
